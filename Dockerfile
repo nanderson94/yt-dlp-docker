@@ -39,7 +39,33 @@ WORKDIR /opt/yt-dlp-ffmpeg/ffmpeg
 RUN apk --no-cache add \
     git \
     build-base \
-    yasm
+    yasm \
+    libass-dev \
+    freetype-dev \
+    gnutls-dev \
+    lame-dev \
+    sdl2-dev \
+    libtool \
+    libva-dev \
+    libva-vdpau-driver \
+    libvdpau-dev \
+    libvorbis-dev \
+    xcb-util-dev \
+    xcb-proto \
+    xcb-imdkit-dev \
+    texinfo \
+    wget \
+    zlib-dev \
+    nasm \
+    x264-dev \
+    x265-dev \
+    libvpx-dev \
+    fdk-aac-dev \
+    dav1d-dev \
+    svt-av1-dev \
+
+
+
 RUN for patch in /opt/yt-dlp-ffmpeg/patches/ffmpeg/master/*.patch; do \
         git apply $patch; \
     done
@@ -48,7 +74,19 @@ RUN ./configure --prefix=/opt/ffbuild/prefix \
                 --pkg-config-flags="--static" \
                 --enable-gpl \
                 --enable-version3 \
-                --disable-debug
+                --disable-debug \
+                --enable-libopus \
+                --enable-nonfree \
+                --enable-libfdk-aac \
+                --enable-libvpx \
+                --enable-libx265 \
+                --enable-libx264 \
+                --enable-libav1d \
+                --enable-libsvtav1 \
+                --enable-libfreetype \
+                --enable-libmp3lame \
+                --enable-gnutls \
+                --enable-libass
 RUN make -j$(nproc) V=1
 RUN make install install-doc
 

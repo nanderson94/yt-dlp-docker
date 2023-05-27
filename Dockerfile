@@ -66,7 +66,7 @@ RUN apk --no-cache add \
 FROM base AS ytdlp_builder
 COPY yt-dlp-source /opt/yt-dlp
 WORKDIR /opt/yt-dlp
-RUN apk add build-base pandoc
+RUN apk add build-base pandoc zip
 RUN pip install -r requirements.txt \
     && make
 

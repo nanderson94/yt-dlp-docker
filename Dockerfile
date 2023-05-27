@@ -42,7 +42,7 @@ RUN apk --no-cache add \
     yasm \
     libass-dev \
     freetype-dev \
-    gnutls-dev \
+    openssl-dev \
     lame-dev \
     sdl2-dev \
     libtool \
@@ -83,7 +83,7 @@ RUN ./configure --prefix=/opt/ffbuild/prefix \
                 --enable-libsvtav1 \
                 --enable-libfreetype \
                 --enable-libmp3lame \
-                --enable-gnutls \
+                --enable-openssl \
                 --enable-libass
 RUN make -j$(nproc) V=1
 RUN make install install-doc

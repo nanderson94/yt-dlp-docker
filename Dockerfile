@@ -29,6 +29,7 @@ RUN apk --no-cache add \
     python3 \
     py3-pip \
     fontconfig \
+    aws-cli \
     ffmpeg
 
 # PhantomJS is frozen on development, pull from source within container

@@ -28,65 +28,66 @@ RUN apk update && apk upgrade
 RUN apk --no-cache add \
     python3 \
     py3-pip \
-    fontconfig
+    fontconfig \
+    ffmpeg
 
-FROM base AS ffmpeg_builder
-WORKDIR /opt/yt-dlp-ffmpeg/
-COPY yt-dlp-ffmpeg/ .
-COPY ffmpeg-source/ ffmpeg
+#FROM base AS ffmpeg_builder
+#WORKDIR /opt/yt-dlp-ffmpeg/
+#COPY yt-dlp-ffmpeg/ .
+#COPY ffmpeg-source/ ffmpeg
+#
+#WORKDIR /opt/yt-dlp-ffmpeg/ffmpeg
+#RUN apk --no-cache add \
+#    git \
+#    build-base \
+#    yasm \
+#    libass-dev \
+#    freetype-dev \
+#    openssl-dev \
+#    lame-dev \
+#    sdl2-dev \
+#    libtool \
+#    libva-dev \
+#    libva-vdpau-driver \
+#    libvdpau-dev \
+#    libvorbis-dev \
+#    xcb-util-dev \
+#    xcb-proto \
+#    xcb-imdkit-dev \
+#    texinfo \
+#    wget \
+#    zlib-dev \
+#    nasm \
+#    x264-dev \
+#    x265-dev \
+#    libvpx-dev \
+#    fdk-aac-dev \
+#    dav1d-dev \
+#    svt-av1-dev
 
-WORKDIR /opt/yt-dlp-ffmpeg/ffmpeg
-RUN apk --no-cache add \
-    git \
-    build-base \
-    yasm \
-    libass-dev \
-    freetype-dev \
-    openssl-dev \
-    lame-dev \
-    sdl2-dev \
-    libtool \
-    libva-dev \
-    libva-vdpau-driver \
-    libvdpau-dev \
-    libvorbis-dev \
-    xcb-util-dev \
-    xcb-proto \
-    xcb-imdkit-dev \
-    texinfo \
-    wget \
-    zlib-dev \
-    nasm \
-    x264-dev \
-    x265-dev \
-    libvpx-dev \
-    fdk-aac-dev \
-    dav1d-dev \
-    svt-av1-dev
-
-RUN for patch in /opt/yt-dlp-ffmpeg/patches/ffmpeg/master/*.patch; do \
-        git apply $patch; \
-    done
-RUN mkdir -p /opt/ffbuild/prefix
-RUN ./configure --prefix=/opt/ffbuild/prefix \
-                --pkg-config-flags="--static" \
-                --enable-gpl \
-                --enable-version3 \
-                --disable-debug \
-                --enable-libopus \
-                --enable-nonfree \
-                --enable-libfdk-aac \
-                --enable-libvpx \
-                --enable-libx265 \
-                --enable-libx264 \
-                --enable-libdav1d \
-                --enable-libsvtav1 \
-                --enable-libfreetype \
-                --enable-libmp3lame \
-                --enable-openssl \
-                --enable-libass
-RUN make -j$(nproc) V=1
-RUN make install install-doc
+#RUN for patch in /opt/yt-dlp-ffmpeg/patches/ffmpeg/master/*.patch; do \
+#        git apply $patch; \
+#    done
+#RUN mkdir -p /opt/ffbuild/prefix
+#RUN ./configure --prefix=/opt/ffbuild/prefix \
+#                --pkg-config-flags="--static" \
+#                --enable-gpl \
+#                --enable-version3 \
+#                --disable-debug \
+#                --enable-libopus \
+#                --enable-nonfree \
+#                --enable-libfdk-aac \
+#                --enable-libvpx \
+#                --enable-libx265 \
+#                --enable-libx264 \
+#                --enable-libdav1d \
+#                --enable-libsvtav1 \
+#                --enable-libfreetype \
+#                --enable-libmp3lame \
+#                --enable-openssl \
+#                --enable-libass
+#RUN make -j$(nproc) V=1
+#RUN make install install-doc
 
 # PhantomJS is frozen on development, pull from source within container
 #FROM base AS phantomjs_builder
@@ -122,10 +123,10 @@ RUN make install install-doc
 
 FROM base
 RUN pip install yt-dlp
-COPY --from=ffmpeg_builder /opt/ffbuild/prefix/bin /usr/bin
-COPY --from=ffmpeg_builder /opt/ffbuild/prefix/lib /usr/lib
-COPY --from=ffmpeg_builder /opt/ffbuild/prefix/share /usr/share
-COPY --from=ffmpeg_builder /opt/ffbuild/prefix/include /usr/include
+#COPY --from=ffmpeg_builder /opt/ffbuild/prefix/bin /usr/bin
+#COPY --from=ffmpeg_builder /opt/ffbuild/prefix/lib /usr/lib
+#COPY --from=ffmpeg_builder /opt/ffbuild/prefix/share /usr/share
+#COPY --from=ffmpeg_builder /opt/ffbuild/prefix/include /usr/include
 #COPY --from=phantomjs_builder /opt/phantomjs/phantomjs-git/ /opt/phantomjs
 
 ENTRYPOINT /usr/bin/yt-dlp

@@ -62,9 +62,7 @@ RUN apk --no-cache add \
     libvpx-dev \
     fdk-aac-dev \
     dav1d-dev \
-    svt-av1-dev \
-
-
+    svt-av1-dev
 
 RUN for patch in /opt/yt-dlp-ffmpeg/patches/ffmpeg/master/*.patch; do \
         git apply $patch; \

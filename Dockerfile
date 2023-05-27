@@ -79,7 +79,7 @@ RUN ./configure --prefix=/opt/ffbuild/prefix \
                 --enable-libvpx \
                 --enable-libx265 \
                 --enable-libx264 \
-                --enable-libav1d \
+                --enable-libdav1d \
                 --enable-libsvtav1 \
                 --enable-libfreetype \
                 --enable-libmp3lame \

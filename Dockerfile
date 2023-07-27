@@ -22,15 +22,15 @@
 #   * secretstorage - Omitted, this container shouldn't have access to keyring
 ###
 
-FROM alpine:latest AS base
+FROM quay.io/fedora/fedora:latest AS base
 
-RUN apk update && apk upgrade
-RUN apk --no-cache add \
-    python3 \
-    py3-pip \
+RUN dnf -y update && \
+    dnf -y install \
+    python3-pip \
     fontconfig \
-    aws-cli \
-    ffmpeg
+    awscli \
+    ffmpeg-free && \
+    dnf clean all
 
 # PhantomJS is frozen on development, pull from source within container
 #FROM base AS phantomjs_builder
@@ -67,7 +67,8 @@ RUN apk --no-cache add \
 FROM base AS ytdlp_builder
 COPY yt-dlp-source /opt/yt-dlp
 WORKDIR /opt/yt-dlp
-RUN apk add build-base pandoc zip
+RUN dnf -y install "@Development Tools" pandoc && \
+    dnf clean all
 RUN pip install -r requirements.txt \
     && make
 

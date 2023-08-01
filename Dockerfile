@@ -65,7 +65,8 @@ RUN dnf -y update && \
 #RUN python3 build.py --confirm --release
 
 FROM base AS ytdlp_builder
-COPY yt-dlp-source /opt/yt-dlp
+ARG YTDLP_SOURCE=/yt-dlp-source
+COPY $YTDLP_SOURCE /opt/yt-dlp
 WORKDIR /opt/yt-dlp
 RUN dnf -y install "@Development Tools" pandoc && \
     dnf clean all

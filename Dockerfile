@@ -24,6 +24,13 @@
 
 FROM quay.io/fedora/fedora:latest AS base
 
+LABEL org.opencontainers.image.authors='Nic A <docker@nic-a.net>' \
+      org.opencontainers.image.url='https://github.com/nanderson94/yt-dlp-docker' \
+      org.opencontainers.image.documentation='https://github.com/nanderson94/yt-dlp-docker' \
+      org.opencontainers.image.vendor='Nandernet' \
+      org.opencontainers.image.source='https://github.com/nanderson94/yt-dlp-docker' \
+      org.opencontainers.image.licenses='Apache-2.0'
+
 RUN dnf -y update && \
     dnf -y install \
     python3-pip \

@@ -1,9 +1,8 @@
 ###
 # Designed around ConcourseCI's checkout style. To build, you'll need the
 # following paths present, relative to this Dockerfile:
-#   * ../yt-dlp-source/ - A git clone of the yt-dlp/yt-dlp repository
-#   * ../yt-dlp-ffpmeg/ - A git clone of the yt-dlp/FFmpeg-Builds repository
-#   * ../yt-dlp-docker/ - This repository
+#   * yt-dlp-source/ - A git clone of the yt-dlp/yt-dlp repository
+#   * yt-dlp-ffpmeg/ - A git clone of the yt-dlp/FFmpeg-Builds repository
 #
 # The following build arguments are considered:
 #   * ytdlp_version = source -- This should be set when building from tag
@@ -71,10 +70,11 @@ RUN dnf -y update && \
 #RUN python3 build.py --confirm --release
 
 FROM base AS ytdlp_builder
-ARG YTDLP_SOURCE=/yt-dlp-source
+RUN mkdir -p /build
+COPY ytdlp-source/* /build
 COPY $YTDLP_SOURCE /opt/yt-dlp
 WORKDIR /opt/yt-dlp
-RUN dnf -y install "@Development Tools" pandoc && \
+RUN dnf -y install @development-tools pandoc && \
     dnf clean all
 RUN pip install -r requirements.txt \
     && make

@@ -1,0 +1,211 @@
+resources:
+  - name: yt-dlp-source
+    type: git
+    icon: github
+    public: true
+    source:
+      uri: https://github.com/yt-dlp/yt-dlp.git
+      tag_filter: "*"
+      fetch_tags: true
+  - name: yt-dlp-source-master
+    type: git
+    icon: github
+    public: true
+    source:
+      uri: https://github.com/yt-dlp/yt-dlp.git
+  - name: yt-dlp-docker
+    type: git
+    icon: github
+    public: true
+    source:
+      uri: https://github.com/nanderson94/yt-dlp-docker.git
+      branch: mainline
+  - name: yt-dlp-ffmpeg
+    type: git
+    icon: github
+    public: true
+    source:
+      uri: https://github.com/yt-dlp/FFmpeg-Builds.git
+      branch: master
+  # ffmpeg is a very active project, and these images will likely be very large.
+  - name: ffmpeg-source
+    check_every: 30m
+    type: git
+    icon: git
+    public: true
+    source:
+      uri: https://git.ffmpeg.org/ffmpeg.git
+      branch: master
+  - name: fedora-image
+    type: registry-image
+    check_every: 30m
+    icon: docker
+    public: true
+    source:
+      repository: quay.io/fedora/fedora
+      tag: latest
+  - name: yt-dlp-image
+    type: registry-image
+    icon: docker
+    source:
+      repository: git.nic-a.net/nic/yt-dlp
+      username: ((docker.user)
+      password: ((docker.token))
+  - name: yt-dlp-image-dockerhub
+    type: registry-image
+    icon: docker
+    source:
+      repository: docker.io/nandernet/yt-dlp
+      username: ((dockerhub.user))
+      password: ((dockerhub.token))
+  - name: yt-dlp-image-github
+    type: registry-image
+    icon: docker
+    source:
+      repository: ghcr.io/nanderson94/yt-dlp
+      username: ((github.user))
+      password: ((github.token))
+
+jobs:
+  - name: image-build
+    public: true
+    plan:
+      - in_parallel:
+        - get: yt-dlp-source
+          trigger: true
+          params:
+            describe_ref_options: '--always --dirty --broken --tags'
+        - get: yt-dlp-ffmpeg
+          trigger: true
+        - get: fedora-image
+          trigger: true
+        - get: ffmpeg-source
+          trigger: true
+        - get: yt-dlp-docker
+          trigger: true
+      - load_var: ytdlp_version
+        file: yt-dlp-source/.git/describe_ref
+      - task: build-image
+        privileged: true
+        attempts: 2
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: docker.io/concourse/oci-build-task
+          inputs:
+            - name: yt-dlp-source
+            - name: yt-dlp-ffmpeg
+            - name: yt-dlp-docker
+            - name: ffmpeg-source
+          outputs:
+            - name: image
+          caches:
+            - path: cache
+          params:
+            DOCKERFILE: yt-dlp-docker/Dockerfile
+            BUILD_ARG_ytdlp_version: ((.:ytdlp_version))
+            #IMAGE_PLATFORM: linux/amd64,linux/arm64
+          run:
+            path: build
+## I do want to figure out how to get this to work, but that would require
+## UNPACK_ROOTFS during the build which I'm not sure if I can push.
+## The right move is probably to push a dev build, pull, test, then push the
+## real deal.
+#      - task: test-image
+#        image: image
+#        config:
+#          platform: linux
+#          inputs:
+#            - name: yt-dlp-docker
+#          run:
+#            path: /bin/sh
+#            args:
+#              - -c
+#              - yt-dlp-docker/validate.sh
+      - in_parallel:
+        - put: yt-dlp-image
+          attempts: 3
+          params:
+            bump_aliases: true
+            image: image/image.tar
+            version: "((.:ytdlp_version))"
+        - put: yt-dlp-image-dockerhub
+          attempts: 3
+          params:
+            bump_aliases: true
+            image: image/image.tar
+            version: "((.:ytdlp_version))"
+        - put: yt-dlp-image-github
+          attempts: 3
+          params:
+            bump_aliases: true
+            image: image/image.tar
+            version: "((.:ytdlp_version))"
+  - name: master-build
+    public: true
+    plan:
+      - in_parallel:
+        - get: yt-dlp-source-master
+          trigger: true
+        - get: yt-dlp-ffmpeg
+          trigger: true
+        - get: fedora-image
+          trigger: true
+        - get: ffmpeg-source
+          trigger: true
+        - get: yt-dlp-docker
+          trigger: true
+      - load_var: ytdlp_version
+        file: yt-dlp-source-master/.git/describe_ref
+      - task: build-image
+        privileged: true
+        attempts: 2
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: docker.io/concourse/oci-build-task
+          inputs:
+            - name: yt-dlp-source-master
+            - name: yt-dlp-ffmpeg
+            - name: yt-dlp-docker
+            - name: ffmpeg-source
+          outputs:
+            - name: image
+          caches:
+            - path: cache
+          params:
+            DOCKERFILE: yt-dlp-docker/Dockerfile
+            BUILD_ARG_YTDLP_SOURCE: /yt-dlp-source-master
+            BUILD_ARG_ytdlp_version: ((.:ytdlp_version))
+            LABEL_org.opencontainers.image.revision: ((.:ytdlp_version))
+          run:
+            path: build
+      - task: write-tags
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: quay.io/quay/busybox
+          run:
+            path: sh
+            args: ["-c", "echo unstable > ./docker-tags/tags"]
+          outputs:
+            - name: docker-tags
+      - in_parallel:
+        - put: yt-dlp-image
+          params:
+            image: image/image.tar
+            additional_tags: docker-tags/tags
+        - put: yt-dlp-image-dockerhub
+          params:
+            image: image/image.tar
+            additional_tags: docker-tags/tags
+        - put: yt-dlp-image-github
+          params:
+            image: image/image.tar
+            additional_tags: docker-tags/tags

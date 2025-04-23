@@ -74,7 +74,7 @@ RUN mkdir -p /build
 COPY ytdlp-source/* /build
 WORKDIR /build
 RUN dnf -y install @development-tools pandoc && \
-    dnf clean all &&
+    dnf clean all && \
     python devscripts/install_deps.py
 #RUN python -m devscripts.install_deps -i default,build
 RUN make all PREFIX=/opt/yt-dlp

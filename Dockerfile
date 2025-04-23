@@ -76,7 +76,7 @@ COPY $YTDLP_SOURCE /opt/yt-dlp
 WORKDIR /opt/yt-dlp
 RUN dnf -y install @development-tools pandoc && \
     dnf clean all
-RUN python -m devscripts.install_deps -i default,build
+#RUN python -m devscripts.install_deps -i default,build
 RUN make
 
 FROM base

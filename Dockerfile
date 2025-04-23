@@ -73,11 +73,11 @@ FROM base AS ytdlp_builder
 RUN mkdir -p /build
 COPY ytdlp-source/* /build
 COPY $YTDLP_SOURCE /opt/yt-dlp
-WORKDIR /opt/yt-dlp
+WORKDIR /build
 RUN dnf -y install @development-tools pandoc && \
     dnf clean all
 #RUN python -m devscripts.install_deps -i default,build
-RUN make
+RUN make all PREFIX=/opt/yt-dlp
 
 FROM base
 COPY --from=ytdlp_builder /opt/yt-dlp/yt-dlp /usr/bin/yt-dlp

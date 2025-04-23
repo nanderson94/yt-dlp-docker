@@ -70,17 +70,16 @@ RUN dnf -y update && \
 #RUN python3 build.py --confirm --release
 
 FROM base AS ytdlp_builder
-RUN mkdir -p /build
-COPY ytdlp-source/* /build
-WORKDIR /build
 RUN dnf -y install @development-tools pandoc && \
-    dnf clean all && \
-    python devscripts/install_deps.py
-#RUN python -m devscripts.install_deps -i default,build
-RUN make all PREFIX=/opt/yt-dlp
+    dnf clean all 
+COPY ytdlp-source /build
+WORKDIR /build
+RUN python devscripts/install_deps.py && \
+    make all PREFIX=/opt/yt-dlp && \
+    make install PREFIX=/opt/yt-dlp
 
 FROM base
-COPY --from=ytdlp_builder /opt/yt-dlp/yt-dlp /usr/bin/yt-dlp
+COPY --from=ytdlp_builder /opt/yt-dlp/bin /usr/bin
 #COPY --from=ffmpeg_builder /opt/ffbuild/prefix/bin /usr/bin
 #COPY --from=ffmpeg_builder /opt/ffbuild/prefix/lib /usr/lib
 #COPY --from=ffmpeg_builder /opt/ffbuild/prefix/share /usr/share

@@ -76,8 +76,8 @@ COPY $YTDLP_SOURCE /opt/yt-dlp
 WORKDIR /opt/yt-dlp
 RUN dnf -y install @development-tools pandoc && \
     dnf clean all
-RUN pip install -r requirements.txt \
-    && make
+RUN python -m devscripts.install_deps -i default,build
+RUN make
 
 FROM base
 COPY --from=ytdlp_builder /opt/yt-dlp/yt-dlp /usr/bin/yt-dlp
